@@ -68,27 +68,27 @@ export default function AdminEvent() {
 
 
   const onCreate = async (ev) => {
-    ev.preventDefault();
-    const msg = validate(newEvt);
-    if (msg) { setErr(msg); return; }
-    setErr('');
-    try {
-      const r = await fetch(`${API_BASE}/api/events`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newEvt,
-          capacity: Number(newEvt.capacity),
-        }),
-      });
-      if (!r.ok) throw new Error();
-      const created = await r.json();
-      setEvents((prev) => [...prev, { ...created, date: toYMD(created.date) }]);
-      setNewEvt({ name: '', description: '', date: '', location: '' });
-    } catch {
-      setErr('Failed to add event');
-    }
-  };
+  ev.preventDefault();
+  const msg = validate(newEvt);
+  if (msg) { setErr(msg); return; }
+  setErr('');
+  try {
+    const r = await fetch(`${API_BASE}/api/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...newEvt,
+        capacity: Number(newEvt.capacity),
+      }),
+    });
+    if (!r.ok) throw new Error();
+    await fetchAll();
+    setNewEvt({ name: '', description: '', date: '', location: '', capacity: '' }); // 全部清空
+  } catch {
+    setErr('Failed to add event');
+  }
+};
+
 
   const startEdit = (e) => {
     setEditingId(e.event_id);
@@ -214,12 +214,10 @@ export default function AdminEvent() {
                       {editingId === e.event_id ? (
                         <input
                           className="input input--small"
-                          type="number"
-                          min="0"
-                          value={editEvt.capacity}
-                          onChange={(ev) => setEditEvt({ ...editEvt, capacity: ev.target.value })}
+                          value={editEvt.name}
+                          onChange={(ev) => setEditEvt({ ...editEvt, name: ev.target.value })}
                         />
-                      ) : e.capacity}
+                      ) : e.name}
                     </td>
                     <td>
                       {editingId === e.event_id ? (
@@ -249,6 +247,17 @@ export default function AdminEvent() {
                           onChange={(ev) => setEditEvt({ ...editEvt, description: ev.target.value })}
                         />
                       ) : (e.description || '')}
+                    </td>
+                     <td>
+                      {editingId === e.event_id ? (
+                        <input
+                          className="input input--small"
+                          type="number"
+                          min="0"
+                          value={editEvt.capacity}
+                          onChange={(ev) => setEditEvt({ ...editEvt, capacity: ev.target.value })}
+                        />
+                      ) : e.capacity}
                     </td>
                     <td className="actions">
                       {editingId === e.event_id ? (

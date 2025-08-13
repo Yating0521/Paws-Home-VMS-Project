@@ -126,9 +126,20 @@ def update_user(user_id):
 @app.route('/api/volunteers/<int:volunteer_id>', methods=['DELETE'])
 def delete_volunteer(volunteer_id):
     volunteer = Volunteer.query.get_or_404(volunteer_id)
+
+    Schedule.query.filter_by(volunteer_id=volunteer_id).delete()
+    LogHours.query.filter_by(volunteer_id=volunteer_id).delete()
+    MessageRecipient.query.filter_by(volunteer_id=volunteer_id).delete()
+    EventSignup.query.filter_by(user_id=volunteer_id).delete()  # 注意：如果 EventSignup 关联的是 user_id 而不是 volunteer_id，要改这里
+
     db.session.delete(volunteer)
+
+    if volunteer.user:
+        db.session.delete(volunteer.user)
+
     db.session.commit()
-    return jsonify({"message": "Volunteer deleted successfully"}), 204
+    return jsonify({"message": "Volunteer deleted successfully"}), 200
+
 
 # API for scheduling shifts
 @app.route('/api/schedules', methods=['POST'])
@@ -243,7 +254,7 @@ def delete_event(event_id):
     event = Event.query.get_or_404(event_id)
     db.session.delete(event)
     db.session.commit()
-    return jsonify({"message": "Event deleted successfully"}), 
+    return jsonify({"message": "Event deleted successfully"}), 200
 
 @app.route('/api/events/<int:event_id>/signup', methods=['POST'])
 def signup_event(event_id):
